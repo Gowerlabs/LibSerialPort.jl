@@ -591,6 +591,23 @@ function sp_blocking_write(port::Port, buffer::Ptr{UInt8}, timeout_ms::Integer)
     ret
 end
 
+# enum sp_return sp_blocking_write(struct sp_port *port, const void *buf, size_t count, unsigned int timeout_ms);
+function sp_threadcall_blocking_write(port::Port, buffer::Array{UInt8}, timeout_ms::Integer)
+    ret = @threadcall((:sp_blocking_write, libserialport), SPReturn,
+                (Port, Ptr{UInt8}, Csize_t, Cuint),
+                port, pointer(buffer), length(buffer), Cuint(timeout_ms))
+    handle_error(ret, loc())
+    ret
+end
+
+function sp_threadcall_blocking_write(port::Port, buffer::Ptr{UInt8}, timeout_ms::Integer)
+    ret = @threadcall((:sp_blocking_write, libserialport), SPReturn,
+                (Port, Ptr{UInt8}, Csize_t, Cuint),
+                port, buffer, sizeof(buffer), Cuint(timeout_ms))
+    handle_error(ret, loc())
+    ret
+end
+
 # enum sp_return sp_nonblocking_write(struct sp_port *port, const void *buf, size_t count);
 function sp_nonblocking_write(port::Port, buffer::Array{UInt8})
     ret = ccall((:sp_nonblocking_write, libserialport), SPReturn,
