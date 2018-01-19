@@ -2,9 +2,9 @@ struct SPPort end
 struct SPConfig end
 struct SPEventSet end
 
-const Port = Ref{SPPort}
+const Port = Ptr{SPPort}
 const PortP = Ref{Ptr{SPPort}}
-const Config = Ref{SPConfig}
+const Config = Ptr{SPConfig}
 const ConfigP = Ref{Ptr{SPConfig}}
 
 @enum(SPReturn,
