@@ -275,19 +275,24 @@ end
 Write sequence of Bytes to `sp`.
 """
 function Base.write(sp::SerialPort, data::Array{UInt8})
-    sp_nonblocking_write(sp.ref, data)
-    return sp_drain(sp.ref)
+    nb::Int = 0;
+    while nb < length(data)
+        ret::SPReturn = sp_nonblocking_write(sp.ref, data[nb+1:end])
+        if ret < SP_OK
+            break;
+        end
+        nb = nb + Int(ret)
+    end
+    ret = sp_output_waiting(sp.ref)
+    if ret > SP_OK
+        ret = sp_drain(sp.ref)
+    end
+    return nb
 end
 
-function Base.write(sp::SerialPort, data::Array{Char})
-    sp_nonblocking_write(sp.ref, data)
-    return sp_drain(sp.ref)
-end
+Base.write(sp::SerialPort, data::Array{Char}) = write(sp, convert(Array{UInt8},data))
 
-function Base.write(sp::SerialPort, data::String)
-    sp_nonblocking_write(sp.ref, convert(Array{UInt8},data))
-    return sp_drain(sp.ref)
-end
+Base.write(sp::SerialPort, data::String) = write(sp, convert(Array{UInt8},data))
 
 """
 `write(sp::SerialPort, data::UInt8)`
@@ -299,21 +304,21 @@ Base.write(sp::SerialPort, data::Char) = write(sp, [data])
 Base.write(sp::SerialPort, data::UInt8) = write(sp, [data])
 
 """
-`write(sp::SerialPort, i::Integer)`
+`write(sp::SerialPort, i::Signed)`
 
-Write string representation of `i` to `sp`.
+Write string representation of signed integer `i` to `sp`.
 """
-Base.write(sp::SerialPort, i::Integer) = Base.write(sp, "$i")
+Base.write(sp::SerialPort, i::Signed) = Base.write(sp, "$i")
 
 """
-`write(sp::SerialPort, f::AbstractFloat)`
-`write(sp::SerialPort, f::AbstractFloat, format::AbstractString)`
+`write(sp::SerialPort, f::Union{Float16, Float32, Float64})`
+`write(sp::SerialPort, f::Union{Float16, Float32, Float64}, format::AbstractString)`
 
 Write formatted string representation of `f` to `sp`. By default the string is
 formated using `format="%.3f"`. For details on the format consult the
 documentation of the C library function `sprintf`.
 """
-Base.write(sp::SerialPort, f::AbstractFloat, format::AbstractString="%.3f") = Base.write(sp, eval(:@sprintf($format, $f)))
+Base.write(sp::SerialPort, f::Union{Float16, Float32, Float64}, format::AbstractString="%.3f") = Base.write(sp, eval(:@sprintf($format, $f)))
 
 """
 `eof(sp::SerialPort)`
