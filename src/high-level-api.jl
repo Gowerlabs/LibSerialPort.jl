@@ -18,6 +18,13 @@ Constructor for the `SerialPort` object.
 SerialPort(portname::AbstractString) = SerialPort(sp_get_port_by_name(portname), false, false)
 
 """
+`sp = SerialPort(portname::AbstractString, baudrate::Integer)`
+
+Constructor for the `SerialPort` object.
+"""
+SerialPort(portname::AbstractString, baudrate::Integer) = open_serial_port(portname, baudrate)
+
+"""
 `destroy!(sp::SerialPort)`
 
 Destructor for the `SerialPort` object.
